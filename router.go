@@ -35,6 +35,10 @@ func parsePattern(pattern string) []string {
 	return parts
 }
 
+func genKey(method, pattern string) string {
+	return method + "-" + pattern
+}
+
 func (r *router) addRouter(method, pattern string, handler HandlerFunc) {
 	parts := parsePattern(pattern)
 
@@ -75,13 +79,13 @@ func (r *router) handle(c *Context) {
 	n, params := r.getRouter(c.Method, c.Path)
 	if n != nil {
 		c.Params = params
-		key := genKey(c.Method, c.Path)
-		r.handlers[key](c)
+		key := genKey(c.Method, n.pattern)
+		if handler, ok := r.handlers[key]; ok {
+			handler(c)
+		} else {
+			panic("the internal match router error")
+		}
 	} else {
-		c.String(http.StatusNotFound, "404 NOT FOUND: %s \n", c.Path)
+		c.String(http.StatusNotFound, "404 NOT FOUND: %s %s \n", c.Method, c.Path)
 	}
-}
-
-func genKey(method, pattern string) string {
-	return method + "-" + pattern
 }

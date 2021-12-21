@@ -8,22 +8,41 @@ import (
 
 func main() {
 	e := gee.New()
-	e.GET("/get", func(c *gee.Context) {
+	v1 := e.Group("/v1")
+	{
+		v1.GET("/user", func(c *gee.Context) {
+			c.JSON(http.StatusOK, gee.H{
+				"hello": "lcs",
+			})
+		})
+		v1.POST("/client", func(c *gee.Context) {
+			c.JSON(http.StatusOK, gee.H{
+				"hello": "client",
+			})
+		})
+	}
+
+	v2 := e.Group("/v2")
+	{
+		v2.GET("/hello/:name", func(c *gee.Context) {
+			name := c.Param("name")
+			c.JSON(http.StatusOK, gee.H{
+				"hello": name,
+			})
+		})
+		v2.POST("/login", func(c *gee.Context) {
+			c.JSON(http.StatusOK, gee.H{
+				"hello": "v2 post",
+			})
+		})
+	}
+
+	e.GET("/v3/hello/:name", func(c *gee.Context) {
+		name := c.Param("name")
 		c.JSON(http.StatusOK, gee.H{
-			"method": c.Method,
-			"path":   c.Path,
-			"value":  "hello, world",
+			"hello": name,
 		})
 	})
-	e.POST("/post", func(c *gee.Context) {
-		c.JSON(http.StatusOK, gee.H{
-			"method": c.Method,
-			"path":   c.Path,
-			"value":  "hello, world",
-		})
-	})
-	e.PUT("/put", func(c *gee.Context) {
-		c.String(http.StatusOK, "hello, put method, path: %s", c.Method)
-	})
+
 	e.Run(":8080")
 }
