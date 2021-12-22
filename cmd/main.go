@@ -8,6 +8,15 @@ import (
 
 func main() {
 	e := gee.New()
+	e.Use(gee.Logger())
+	e.LoadHTMLGlob("./templates/*")
+
+	e.GET("/", func(c *gee.Context) {
+		c.HTML(http.StatusOK, "css.tmpl", nil)
+	})
+
+	e.Static("/assert", "./static/")
+
 	v1 := e.Group("/v1")
 	{
 		v1.GET("/user", func(c *gee.Context) {
