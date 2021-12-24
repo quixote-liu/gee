@@ -3,6 +3,7 @@ package gee
 import (
 	"encoding/json"
 	"fmt"
+	"gee/render"
 	"net/http"
 )
 
@@ -10,7 +11,7 @@ type H map[string]interface{}
 
 type Context struct {
 	// origin object
-	Writer http.ResponseWriter
+	Writer ResponseWriter
 	Req    *http.Request
 
 	// request info
@@ -30,8 +31,10 @@ type Context struct {
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
+	nw := &responseWriter{}
+	nw.reset(w)
 	return &Context{
-		Writer: w,
+		Writer: nw,
 		Req:    req,
 		Path:   req.URL.Path,
 		Method: req.Method,
@@ -52,13 +55,42 @@ func (c *Context) setHeader(key, value string) {
 	c.Writer.Header().Add(key, value)
 }
 
+func (c *Context) Param(key string) string {
+	return c.Params[key]
+}
+
+/**************************************************/
+/************ RESPONSE RENDERING ******************/
+/**************************************************/
+
+// Status set the HTTP response status
 func (c *Context) Status(code int) {
 	c.StatusCode = code
 	c.Writer.WriteHeader(code)
 }
 
-func (c *Context) Param(key string) string {
-	return c.Params[key]
+// bodyAllowedForStatus is a copy of http.bodyAllowedForStatus non-exported function
+func (c *Context) bodyAllowedForStatus(status int) bool {
+	switch {
+	case status <= 199:
+		return false
+	case status == http.StatusNoContent:
+		return false
+	case status == http.StatusNotModified:
+		return false
+	}
+	return true
+}
+
+func (c *Context) Render(code int, r render.Render) {
+	c.Status(code)
+
+	if !c.bodyAllowedForStatus(code) {
+		r.WriteContentType(c.Writer)
+		c.Writer.WriteHeaderNow()
+		return
+	}
+
 }
 
 func (c *Context) String(code int, format string, values ...interface{}) {
