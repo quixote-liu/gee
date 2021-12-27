@@ -90,7 +90,7 @@ func (c *Context) Render(code int, r render.Render) {
 		c.Writer.WriteHeaderNow()
 		return
 	}
-
+	r.Render(c.Writer)
 }
 
 func (c *Context) String(code int, format string, values ...interface{}) {
