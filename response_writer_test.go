@@ -25,6 +25,7 @@ func TestWrite(t *testing.T) {
 		var nrw ResponseWriter = &responseWriter{
 			ResponseWriter: rw,
 		}
+		nrw.Header().Set("Content-Type", "application/json")
 		nrw.WriteHeader(http.StatusCreated)
 		nrw.Write(jsonBytes)
 	}))
@@ -35,6 +36,7 @@ func TestWrite(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 
 	payload := map[string]interface{}{}
 	err = json.NewDecoder(resp.Body).Decode(&payload)

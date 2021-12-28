@@ -1,7 +1,6 @@
 package gee
 
 import (
-	"encoding/json"
 	"fmt"
 	"gee/render"
 	"net/http"
@@ -69,7 +68,7 @@ func (c *Context) Status(code int) {
 	c.Writer.WriteHeader(code)
 }
 
-// bodyAllowedForStatus is a copy of http.bodyAllowedForStatus non-exported function
+// bodyAllowedForStatus is a copy of http.bodyAllowedForStatus non-exported function.
 func (c *Context) bodyAllowedForStatus(status int) bool {
 	switch {
 	case status <= 199:
@@ -90,7 +89,10 @@ func (c *Context) Render(code int, r render.Render) {
 		c.Writer.WriteHeaderNow()
 		return
 	}
-	r.Render(c.Writer)
+
+	if err := r.Render(c.Writer); err != nil {
+		panic(err)
+	}
 }
 
 func (c *Context) String(code int, format string, values ...interface{}) {
@@ -100,12 +102,9 @@ func (c *Context) String(code int, format string, values ...interface{}) {
 }
 
 func (c *Context) JSON(code int, obj interface{}) {
-	c.setHeader("Content-Type", "application/json")
-	c.Status(code)
-	encoder := json.NewEncoder(c.Writer)
-	if err := encoder.Encode(&obj); err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-	}
+	// do not need the pointer of render.JSON,
+	// the render.JSON structure is main to compose the render work.
+	c.Render(code, render.JSON{Data: obj})
 }
 
 func (c *Context) Fail(code int, err error) {

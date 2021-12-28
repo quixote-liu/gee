@@ -65,7 +65,7 @@ func (w *responseWriter) Written() bool {
 	return w.size != noWritten
 }
 
-func (w *responseWriter) WriterHeader(code int) {
+func (w *responseWriter) WriteHeader(code int) {
 	if code > 0 && w.status != code {
 		if w.Written() {
 			log.Printf("[WARING] Headers were already written, Wanted to override status code %d with %d", w.status, code)
