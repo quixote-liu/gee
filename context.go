@@ -58,6 +58,14 @@ func (c *Context) Param(key string) string {
 	return c.Params[key]
 }
 
+// func (c *Context) GetQuery(key string) (value string, ok bool) {
+// 	if c.Req.URL.Query().Get(key)
+// }
+
+// func (c *Context) DefaultQuery(key, defaultValue string) string {
+
+// }
+
 /**************************************************/
 /************ RESPONSE RENDERING ******************/
 /**************************************************/
@@ -106,6 +114,10 @@ func (c *Context) JSON(code int, obj interface{}) {
 	// the render.JSON structure is main to compose the render work.
 	c.Render(code, render.JSON{Data: obj})
 }
+
+// func (c *Context) JSONP(code int, obj interface{}) {
+// 	c.Render(code, render.JsonpJSON{Data: obj})
+// }
 
 func (c *Context) Fail(code int, err error) {
 	c.Status(code)
