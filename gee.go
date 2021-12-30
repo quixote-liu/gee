@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const defaultMultipartMemory = 32 << 20 // 32MB
+
 type HandlerFunc func(c *Context)
 
 type Engine struct {
@@ -14,17 +16,29 @@ type Engine struct {
 	groups []*RouterGroup // store all groups
 
 	// for html render
-	htmlTemplates *template.Template
-	funcMap       template.FuncMap
+	htmlTemplates    *template.Template
+	funcMap          template.FuncMap
+	secureJSONPrefix string
+
+	// Value of "maxMemory" param that is given to http.Request's ParseMultipartForm
+	// method call.
+	MaxMultipartMemory int64
 }
 
 func New() *Engine {
 	engine := &Engine{
-		router: newRouter(),
+		router:             newRouter(),
+		secureJSONPrefix:   "while(1);",
+		MaxMultipartMemory: defaultMultipartMemory,
 	}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
 	return engine
+}
+
+func (e *Engine) SecureJsonPrefix(prefix string) *Engine {
+	e.secureJSONPrefix = prefix
+	return e
 }
 
 func (e *Engine) GET(pattern string, handler HandlerFunc) {
