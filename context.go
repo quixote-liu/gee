@@ -1,9 +1,9 @@
 package gee
 
 import (
-	"fmt"
 	"gee/render"
 	"net/http"
+	"net/url"
 )
 
 type H map[string]interface{}
@@ -27,6 +27,8 @@ type Context struct {
 
 	// engine pointer
 	engine *Engine
+
+	queryCache url.Values
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -42,12 +44,12 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 	}
 }
 
+/**************************************************/
+/****************** INPUT DATA ********************/
+/**************************************************/
+
 func (c *Context) PostForm(key string) string {
 	return c.Req.FormValue(key)
-}
-
-func (c *Context) Query(key string) string {
-	return c.Req.URL.Query().Get(key)
 }
 
 func (c *Context) setHeader(key, value string) {
@@ -58,13 +60,47 @@ func (c *Context) Param(key string) string {
 	return c.Params[key]
 }
 
-// func (c *Context) GetQuery(key string) (value string, ok bool) {
-// 	if c.Req.URL.Query().Get(key)
-// }
+func (c *Context) initQueryCache() {
+	if c.queryCache == nil {
+		if c.Req != nil {
+			c.queryCache = c.Req.URL.Query()
+		} else {
+			c.queryCache = url.Values{}
+		}
+	}
+}
 
-// func (c *Context) DefaultQuery(key, defaultValue string) string {
+func (c *Context) GetQueryArray(key string) (values []string, ok bool) {
+	c.initQueryCache()
+	values, ok = c.queryCache[key]
+	return
+}
 
-// }
+// Query returns the keyed url query value if is exist,
+// Otherwise it returns an empty string `("")`.
+func (c *Context) Query(key string) string {
+	value, _ := c.GetQuery(key)
+	return value
+}
+
+// GetQuery is like Query, it returns the keyed url query value
+// if it exist `(value, true)` (even when the value is an empty string),
+// otherwise it returns `("", false)`
+func (c *Context) GetQuery(key string) (value string, ok bool) {
+	if values, ok := c.GetQueryArray(key); ok {
+		return values[0], ok
+	}
+	return "", false
+}
+
+// DefaultQuery returns the keyed url query value if it exists,
+// otherwise it returns the specified defaultValue string.
+func (c *Context) DefaultQuery(key, defaultValue string) string {
+	if value, ok := c.GetQuery(key); ok {
+		return value
+	}
+	return defaultValue
+}
 
 /**************************************************/
 /************ RESPONSE RENDERING ******************/
@@ -103,21 +139,44 @@ func (c *Context) Render(code int, r render.Render) {
 	}
 }
 
-func (c *Context) String(code int, format string, values ...interface{}) {
-	c.setHeader("Content-Type", "text/plain")
-	c.Status(code)
-	c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
-}
-
 func (c *Context) JSON(code int, obj interface{}) {
 	// do not need the pointer of render.JSON,
 	// the render.JSON structure is main to compose the render work.
 	c.Render(code, render.JSON{Data: obj})
 }
 
-// func (c *Context) JSONP(code int, obj interface{}) {
-// 	c.Render(code, render.JsonpJSON{Data: obj})
-// }
+func (c *Context) IndentedJSON(code int, obj interface{}) {
+	c.Render(code, render.IndentedJSON{Data: obj})
+}
+
+func (c *Context) SecureJSON(code int, obj interface{}) {
+	c.Render(code, render.SecureJSON{Data: obj, Prefix: "prefix"})
+}
+
+func (c *Context) JSONP(code int, obj interface{}) {
+	callback := c.DefaultQuery("callback", "")
+	if callback == "" {
+		c.Render(code, render.JSON{Data: obj})
+		return
+	}
+	c.Render(code, render.JsonpJSON{Callback: callback, Data: obj})
+}
+
+func (c *Context) AsciiJSON(code int, obj interface{}) {
+	c.Render(code, render.AsciiJSON{Data: obj})
+}
+
+func (c *Context) XML(code int, obj interface{}) {
+	c.Render(code, render.XML{Data: obj})
+}
+
+func (c *Context) YAML(code int, obj interface{}) {
+	c.Render(code, render.YAML{Data: obj})
+}
+
+func (c *Context) String(code int, format string, obj ...interface{}) {
+	c.Render(code, render.String{Format: format, Data: obj})
+}
 
 func (c *Context) Fail(code int, err error) {
 	c.Status(code)
@@ -125,11 +184,12 @@ func (c *Context) Fail(code int, err error) {
 }
 
 func (c *Context) HTML(code int, name string, data interface{}) {
-	c.setHeader("Content-Type", "text/html")
-	c.Status(code)
-	if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
-		c.Fail(code, err)
-	}
+	// c.setHeader("Content-Type", "text/html")
+	// c.Status(code)
+	// if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
+	// 	c.Fail(code, err)
+	// }
+	c.Render(code, render.HTML{Template: c.engine.htmlTemplates, Name: name, Data: data})
 }
 
 func (c *Context) Next() {

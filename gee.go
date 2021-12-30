@@ -14,17 +14,24 @@ type Engine struct {
 	groups []*RouterGroup // store all groups
 
 	// for html render
-	htmlTemplates *template.Template
-	funcMap       template.FuncMap
+	htmlTemplates    *template.Template
+	funcMap          template.FuncMap
+	secureJSONPrefix string
 }
 
 func New() *Engine {
 	engine := &Engine{
-		router: newRouter(),
+		router:           newRouter(),
+		secureJSONPrefix: "while(1);",
 	}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
 	return engine
+}
+
+func (e *Engine) SecureJsonPrefix(prefix string) *Engine {
+	e.secureJSONPrefix = prefix
+	return e
 }
 
 func (e *Engine) GET(pattern string, handler HandlerFunc) {
