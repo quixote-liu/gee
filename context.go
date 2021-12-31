@@ -295,11 +295,6 @@ func (c *Context) Fail(code int, err error) {
 }
 
 func (c *Context) HTML(code int, name string, data interface{}) {
-	// c.setHeader("Content-Type", "text/html")
-	// c.Status(code)
-	// if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
-	// 	c.Fail(code, err)
-	// }
 	c.Render(code, render.HTML{Template: c.engine.htmlTemplates, Name: name, Data: data})
 }
 
