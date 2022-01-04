@@ -2,7 +2,9 @@ package gee
 
 import (
 	"errors"
+	"gee/binding"
 	"gee/render"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"sync"
@@ -189,11 +191,22 @@ func (c *Context) GetQueryArray(key string) (values []string, ok bool) {
 // PostForm returns the specified key from a POST urlencoded form or multipart form
 // when is exists, otherwise it returns an empty value.
 func (c *Context) PostForm(key string) string {
-	return c.Req.FormValue(key)
+	val, _ := c.GetPostForm(key)
+	return val
 }
 
-func (c *Context) GetPostForm(key string) (string, error) {
+// GetPostForm returns a string of a given form key
+func (c *Context) GetPostForm(key string) (string, bool) {
+	if values, ok := c.GetPostFormArray(key); ok {
+		return values[0], ok
+	}
+	return "", false
+}
 
+// PostFormArray returns the a slice of strings for a given form key.
+func (c *Context) PostFormArray(key string) (values []string) {
+	values, _ = c.GetPostFormArray(key)
+	return values
 }
 
 func (c *Context) initFormCache() {
@@ -209,8 +222,33 @@ func (c *Context) initFormCache() {
 	}
 }
 
+// GetPostFormArray returns a slice of strings of a given form key, plus
+// a boolean value whether at least one value exists for the given key.
 func (c *Context) GetPostFormArray(key string) (values []string, ok bool) {
+	c.initFormCache()
+	values, ok = c.formCache[key]
+	return
+}
 
+// ShouldBindWith binds the http passed struct pointer using the specified binding engine.
+// See the binding package.
+func (c *Context) shouldBindWith(obj interface{}, b binding.Binding) error {
+	return b.Bind(c.Req, obj)
+}
+
+// ShouldBindJSON is a shortcut for c.shouldBindWith(obj, binding.JSON).
+func (c *Context) ShouldBindJSON(obj interface{}) error {
+	return c.shouldBindWith(obj, binding.JSON)
+}
+
+// Bind checks the Content-Type to select a binding engine automatically.
+func (c *Context) Bind(obj interface{}) error {
+	return nil
+}
+
+func (c *Context) MultipartForm() (*multipart.Form, error) {
+	err := c.Req.ParseMultipartForm(c.engine.MaxMultipartMemory)
+	return c.Req.MultipartForm, err
 }
 
 /**************************************************/

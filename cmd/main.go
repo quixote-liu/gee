@@ -144,5 +144,33 @@ func main() {
 		})
 	})
 
+	// ************************
+	// ****test postform*******
+	// ************************
+	e.GET("/postform/hello", func(c *gee.Context) {
+		name := c.PostForm("name")
+		id := c.PostForm("id")
+		address := c.PostForm("address")
+		email := c.PostForm("email")
+		phone := c.PostForm("phone")
+
+		c.JSON(http.StatusOK, gee.H{
+			"name":    name,
+			"id":      id,
+			"address": address,
+			"email":   email,
+			"phone":   phone,
+		})
+	})
+
+	// shoudBindJSON
+	e.POST("/shouldBindJSON", func(c *gee.Context) {
+		payload := map[string]interface{}{}
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, payload)
+	})
+
 	e.Run(":8080")
 }
