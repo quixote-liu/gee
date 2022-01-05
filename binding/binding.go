@@ -21,6 +21,8 @@ const (
 // present in the request to struct instances.
 var (
 	JSON = jsonBinding{}
+	YAML = yamlBinding{}
+	XML  = xmlBinding{}
 )
 
 // Binding describes the interface which needs to be implemented for binding the

@@ -172,5 +172,21 @@ func main() {
 		c.JSON(http.StatusOK, payload)
 	})
 
+	// ShouldBindXML
+	e.POST("/shouldbindxml", func(c *gee.Context) {
+		type server struct {
+			ServerName string `xml:"serverName"`
+			ServerIP   string `xml:"serverIP"`
+		}
+		payload := struct {
+			Servers []server `xml:"servers"`
+		}{}
+
+		if err := c.ShouldBindXML(&payload); err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, payload)
+	})
+
 	e.Run(":8080")
 }

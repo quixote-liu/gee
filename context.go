@@ -241,6 +241,15 @@ func (c *Context) ShouldBindJSON(obj interface{}) error {
 	return c.shouldBindWith(obj, binding.JSON)
 }
 
+// ShouldBindXML is a shortcut for c.shouldBindWith(obj, binding.XML)
+func (c *Context) ShouldBindXML(obj interface{}) error {
+	return c.shouldBindWith(obj, binding.XML)
+}
+
+func (c *Context) ShouldBindYAML(obj interface{}) error {
+	return c.shouldBindWith(obj, binding.YAML)
+}
+
 // Bind checks the Content-Type to select a binding engine automatically.
 func (c *Context) Bind(obj interface{}) error {
 	return nil

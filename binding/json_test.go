@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var delivery = map[string]interface{}{
+var JSONdelivery = map[string]interface{}{
 	"name":    "lcs",
 	"id":      "20202111",
 	"email":   "123@foxmail.com",
@@ -17,7 +17,7 @@ var delivery = map[string]interface{}{
 }
 
 func bodyCase() ([]byte, error) {
-	bytes, err := json.Marshal(delivery)
+	bytes, err := json.Marshal(JSONdelivery)
 	return bytes, err
 }
 
@@ -32,7 +32,7 @@ func TestBind(t *testing.T) {
 	err = jsonBinding.Bind(req, &payload)
 	assert.Nil(t, err)
 
-	assert.Equal(t, delivery, payload)
+	assert.Equal(t, JSONdelivery, payload)
 }
 
 func TestBindBody(t *testing.T) {
@@ -44,5 +44,5 @@ func TestBindBody(t *testing.T) {
 	err = jsonBinding.BindBody(body, &payload)
 	assert.Nil(t, err)
 
-	assert.Equal(t, delivery, payload)
+	assert.Equal(t, JSONdelivery, payload)
 }
