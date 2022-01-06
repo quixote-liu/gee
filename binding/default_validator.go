@@ -67,6 +67,11 @@ func (v *defaultValidator) ValidateStruct(obj interface{}) error {
 	}
 }
 
+func (v *defaultValidator) Engine() interface{} {
+	v.lazyinit()
+	return v.validate
+}
+
 func (v *defaultValidator) validateStruct(obj interface{}) error {
 	v.lazyinit()
 	return v.validate.Struct(obj)

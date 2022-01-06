@@ -27,6 +27,5 @@ func decodeYaml(r io.Reader, obj interface{}) error {
 	if err := decoder.Decode(obj); err != nil {
 		return err
 	}
-	// TODO: Add validator
-	return nil
+	return validate(obj)
 }

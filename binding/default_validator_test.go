@@ -58,6 +58,8 @@ func TestDefaultValidator(t *testing.T) {
 		{"validate nil obj", &defaultValidator{}, nil, false},
 		{"validate int obj", &defaultValidator{}, 3, false},
 		{"validate struct failed-1", &defaultValidator{}, exampleStruct{A: "123456789", B: 1}, true},
+		{"validate struct failed-2", &defaultValidator{}, exampleStruct{A: "123", B: -1}, true},
+		{"validate struct pass", &defaultValidator{}, exampleStruct{A: "12345678", B: 1}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
