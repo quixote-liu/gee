@@ -35,16 +35,18 @@ func mapFormByTag(ptr interface{}, form map[string][]string, tag string) error {
 		return setFormMap(ptr, form)
 	}
 
-
+	// TODO: to complete.
+	return nil
 }
 
 // setter tries to set value on a walking by fields of a struct.
-type setter interface{
+type setter interface {
 	TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions)
 }
 
 func mappingByPtr(ptr interface{}, setter setter, tag string) error {
-
+	// TODO: to complete.
+	return nil
 }
 
 func setFormMap(ptr interface{}, form map[string][]string) error {
